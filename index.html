@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuente de la Verdad | Automatización ETL</title>
+    
+    <!-- Bootstrap 5 & Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Prism Theme (Dracula/Dark) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    
+    <style>
+        :root {
+            /* --- PALETA ALTO CONTRASTE --- */
+            --bg-body: #050910;       /* Fondo casi negro para contraste máximo */
+            --bg-card: #111827;       /* Fondo tarjeta oscuro profundo */
+            --bg-card-hover: #1f2937; 
+            
+            /* TEXTOS: BLANCO PURO Y BRILLANTE */
+            --text-main: #ffffff;     
+            --text-secondary: #f3f4f6; /* Casi blanco, muy brillante */
+            
+            /* ACENTOS NEÓN */
+            --accent-cyan: #06b6d4;   /* Cyan eléctrico */
+            --accent-purple: #c084fc;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            
+            --gradient-main: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+            
+            /* BORDES MÁS VISIBLES */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* --- FUERZA BRUTA PARA VISIBILIDAD --- */
+        h1, h2, h3, h4, h5, h6 { 
+            color: #ffffff !important; 
+            font-weight: 700; 
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.15); /* Sutil resplandor */
+        }
+        
+        p, span, div, li, small, .text-muted, .text-secondary {
+            color: var(--text-secondary) !important;
+            opacity: 1 !important; /* Quitar transparencia */
+            font-weight: 400;
+        }
+
+        /* Enlaces brillantes */
+        a { text-decoration: none; }
+        
+        .text-accent { 
+            color: var(--accent-cyan) !important; 
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(5, 9, 16, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 140px 0 100px 0;
+            background: radial-gradient(circle at 50% 20%, rgba(6, 182, 212, 0.25), transparent 60%);
+        }
+
+        /* Cards - Alto Contraste */
+        .glass-card {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            height: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: var(--bg-card-hover);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); /* Glow al hover */
+        }
+
+        /* Diagrama de Flujo */
+        .flow-arrow {
+            color: #ffffff !important; /* Flechas blancas */
+            font-size: 1.5rem;
+            z-index: 0;
+            opacity: 1;
+        }
+        @media (min-width: 992px) {
+            .flow-arrow {
+                position: absolute;
+                top: 50%;
+                right: -20px;
+                transform: translateY(-50%);
+            }
+        }
+
+        /* Código - Corrección de Colores para Legibilidad */
+        .code-wrapper {
+            background: #000000; /* Fondo negro puro para contraste */
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            overflow: hidden;
+        }
+        .code-header {
+            background: #1a1a1a;
+            padding: 12px 20px;
+            border-bottom: 1px solid #444;
+        }
+        pre {
+            margin: 0 !important;
+            padding: 25px !important;
+            max-height: none !important;
+            overflow-x: auto !important;
+            white-space: pre-wrap;
+        }
+        code { 
+            font-family: 'JetBrains Mono', monospace !important; 
+            font-size: 0.9rem;
+            text-shadow: none !important;
+        }
+        /* Forzar colores brillantes en el código */
+        .token.comment { color: #4ade80 !important; font-style: italic; } /* Comentarios verdes brillantes */
+        .token.string { color: #facc15 !important; } /* Strings amarillos */
+        .token.function { color: #60a5fa !important; } /* Funciones azul claro */
+        .token.keyword { color: #c084fc !important; } /* Keywords violeta */
+
+        /* Accordion */
+        .accordion-item {
+            background-color: var(--bg-card);
+            border: var(--glass-border);
+        }
+        .accordion-button {
+            background-color: var(--bg-card);
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(6, 182, 212, 0.2);
+            color: #ffffff !important;
+            box-shadow: none;
+        }
+        .accordion-button::after { filter: invert(1) brightness(2); } /* Flecha blanca brillante */
+        .accordion-body { 
+            background-color: #000; 
+            color: #ffffff !important;
+        }
+
+        /* Botones */
+        .btn-glow {
+            background: var(--gradient-main);
+            color: white !important;
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 12px 35px;
+            font-weight: 700;
+            border-radius: 8px;
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-glow:hover {
+            background: #06b6d4;
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.8);
+            transform: scale(1.02);
+        }
+
+        .icon-box {
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        /* Badges más brillantes */
+        .badge {
+            color: #ffffff !important;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+    </style>
+</head>
+<body data-bs-spy="scroll" data-bs-target="#navbar-main">
+
+    <!-- Navbar -->
+    <nav id="navbar-main" class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="fa-solid fa-robot me-2 text-info"></i>
+                <span style="text-shadow: 0 0 15px rgba(6,182,212,0.8); color: white;">FUENTE DE LA VERDAD</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav gap-2">
+                    <li class="nav-item"><a class="nav-link text-white fw-bold" href="#intro">PROBLEMA</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-bold" href="#arquitectura">ARQUITECTURA</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-bold" href="#codigo">SCRIPT</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-bold" href="#instrucciones">INSTALACIÓN</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero text-center position-relative">
+        <div class="container">
+            <span class="badge bg-primary px-3 py-2 mb-4 rounded-pill border border-light">
+                <i class="fa-solid fa-bolt me-2"></i>SISTEMA ETL AUTOMATIZADO
+            </span>
+            <h1 class="display-3 mb-4">Democratiza tus Datos<br><span class="text-accent">Del SQL Local a la Nube</span></h1>
+            <p class="lead mb-5 mx-auto fw-bold" style="max-width: 800px; color: #ffffff !important;">
+                Convierte tu SQL Server On-Premise en una fuente universal. Un robot inteligente que extrae, transforma y sincroniza datos para Power BI, Web y Móvil en tiempo real.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="#instrucciones" class="btn btn-glow"><i class="fa-solid fa-download me-2"></i>EMPEZAR AHORA</a>
+                <a href="#arquitectura" class="btn btn-outline-light px-4 py-2 fw-bold bg-dark">VER ARQUITECTURA</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contexto & Problema -->
+    <section id="intro" class="py-5">
+        <div class="container">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-6">
+                    <h2 class="mb-4 text-accent">El Problema de los Silos de Datos</h2>
+                    <p class="mb-4" style="font-size: 1.1rem;">
+                        En muchas organizaciones, los datos valiosos viven atrapados en bases de datos locales, inaccesibles para equipos remotos. Los gerentes dependen de reportes manuales que ya están desactualizados al momento de leerlos.
+                    </p>
+                    
+                    <div class="p-4 rounded-3 border border-danger bg-dark mb-4 shadow">
+                        <h5 class="text-danger fw-bold mb-3"><i class="fa-solid fa-triangle-exclamation me-2"></i>Los Desafíos Actuales</h5>
+                        <ul class="list-unstyled mt-3 mb-0 d-grid gap-2">
+                            <li class="text-white"><i class="fa-solid fa-xmark text-danger me-2"></i><strong>Datos Encerrados:</strong> SQL Local inaccesible fuera de la oficina.</li>
+                            <li class="text-white"><i class="fa-solid fa-xmark text-danger me-2"></i><strong>Procesos Manuales:</strong> Exportar a Excel consume horas semanales.</li>
+                            <li class="text-white"><i class="fa-solid fa-xmark text-danger me-2"></i><strong>Incompatibilidad:</strong> Desarrolladores quieren JSON, Gerentes Excel.</li>
+                            <li class="text-white"><i class="fa-solid fa-xmark text-danger me-2"></i><strong>Reportes Viejos:</strong> Decisiones basadas en datos de la semana pasada.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-card border-success" style="background: rgba(16, 185, 129, 0.05);">
+                        <h3 class="text-success mb-4" style="text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>La Solución: Robot de Datos</h3>
+                        <p class="text-white fw-bold">Un sistema autónomo que despierta cada 30 segundos y ejecuta un pipeline ETL completo:</p>
+                        
+                        <div class="d-grid gap-3 mt-4">
+                            <div class="d-flex align-items-center p-2 rounded hover-effect">
+                                <div class="icon-box bg-dark text-info mb-0 me-3" style="width: 50px; height: 50px;"><i class="fa-solid fa-magnifying-glass"></i></div>
+                                <div>
+                                    <strong class="text-white fs-5">Extrae</strong>
+                                    <p class="small text-white mb-0">Consulta SQL Server automáticamente.</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center p-2 rounded">
+                                <div class="icon-box bg-dark text-warning mb-0 me-3" style="width: 50px; height: 50px;"><i class="fa-solid fa-gears"></i></div>
+                                <div>
+                                    <strong class="text-white fs-5">Transforma</strong>
+                                    <p class="small text-white mb-0">Convierte a CSV, JSON y Excel simultáneamente.</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center p-2 rounded">
+                                <div class="icon-box bg-dark text-success mb-0 me-3" style="width: 50px; height: 50px;"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                <div>
+                                    <strong class="text-white fs-5">Sincroniza</strong>
+                                    <p class="small text-white mb-0">Sube cambios a la nube (Git) al instante.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Arquitectura Visual -->
+    <section id="arquitectura" class="py-5 bg-black">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="text-accent fw-bold small text-uppercase ls-1 border border-info px-2 py-1 rounded">FLUJO DE TRABAJO</span>
+                <h2 class="mt-3">Arquitectura del Flujo de Datos</h2>
+            </div>
+
+            <!-- Flow Diagram -->
+            <div class="row g-4 text-center justify-content-center align-items-center position-relative">
+                
+                <div class="col-lg-2 col-md-4 position-relative">
+                    <div class="glass-card py-4">
+                        <i class="fa-solid fa-server text-danger fs-1 mb-3" style="filter: drop-shadow(0 0 5px red);"></i>
+                        <h6 class="mb-1 text-white">SQL Server</h6>
+                        <small class="text-white fw-bold">On-Premise (Local)</small>
+                    </div>
+                    <i class="fa-solid fa-arrow-right flow-arrow d-none d-lg-block"></i>
+                    <i class="fa-solid fa-arrow-down flow-arrow d-lg-none position-static mt-3"></i>
+                </div>
+
+                <div class="col-lg-2 col-md-4 position-relative">
+                    <div class="glass-card py-4 border-info">
+                        <i class="fa-brands fa-python text-warning fs-1 mb-3" style="filter: drop-shadow(0 0 5px yellow);"></i>
+                        <h6 class="mb-1 text-white">Robot (Python)</h6>
+                        <small class="text-white fw-bold">ETL Engine</small>
+                    </div>
+                    <i class="fa-solid fa-arrow-right flow-arrow d-none d-lg-block"></i>
+                    <i class="fa-solid fa-arrow-down flow-arrow d-lg-none position-static mt-3"></i>
+                </div>
+
+                <div class="col-lg-2 col-md-4 position-relative">
+                    <div class="glass-card py-4">
+                        <i class="fa-solid fa-file-csv text-success fs-1 mb-3" style="filter: drop-shadow(0 0 5px green);"></i>
+                        <h6 class="mb-1 text-white">Archivos</h6>
+                        <small class="text-white fw-bold">CSV / JSON / XLSX</small>
+                    </div>
+                    <i class="fa-solid fa-arrow-right flow-arrow d-none d-lg-block"></i>
+                    <i class="fa-solid fa-arrow-down flow-arrow d-lg-none position-static mt-3"></i>
+                </div>
+
+                <div class="col-lg-2 col-md-4 position-relative">
+                    <div class="glass-card py-4">
+                        <i class="fa-brands fa-github text-white fs-1 mb-3" style="filter: drop-shadow(0 0 5px white);"></i>
+                        <h6 class="mb-1 text-white">GitHub</h6>
+                        <small class="text-white fw-bold">Fuente de Verdad</small>
+                    </div>
+                    <i class="fa-solid fa-arrow-right flow-arrow d-none d-lg-block"></i>
+                    <i class="fa-solid fa-arrow-down flow-arrow d-lg-none position-static mt-3"></i>
+                </div>
+
+                <div class="col-lg-2 col-md-4 position-relative">
+                    <div class="glass-card py-4 border-warning">
+                        <i class="fa-solid fa-chart-pie text-warning fs-1 mb-3" style="filter: drop-shadow(0 0 5px orange);"></i>
+                        <h6 class="mb-1 text-white">Consumo</h6>
+                        <small class="text-white fw-bold">Power BI / Apps</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Métricas -->
+            <div class="row g-4 mt-5 pt-3">
+                <div class="col-md-3">
+                    <div class="p-3 border border-info rounded bg-dark">
+                        <h2 class="fw-bold mb-0 text-white display-5">30s</h2>
+                        <small class="text-white fw-bold text-uppercase">Actualización</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-success rounded bg-dark">
+                        <h2 class="fw-bold mb-0 text-white display-5">3</h2>
+                        <small class="text-white fw-bold text-uppercase">Formatos</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-warning rounded bg-dark">
+                        <h2 class="fw-bold mb-0 text-white display-5">100%</h2>
+                        <small class="text-white fw-bold text-uppercase">Autónomo</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-danger rounded bg-dark">
+                        <h2 class="fw-bold mb-0 text-white display-5">$0</h2>
+                        <small class="text-white fw-bold text-uppercase">Licencias</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Código del Robot -->
+    <section id="codigo" class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h2 class="text-accent">El Cerebro: robot_datos.py</h2>
+                    <p class="text-white mb-0 fw-bold">Este script es el corazón de la automatización. Maneja conexiones y recuperación de errores.</p>
+                </div>
+                <button class="btn btn-outline-info btn-sm fw-bold border-2 text-white" onclick="copiarCodigo()"><i class="fa-regular fa-copy me-2"></i>COPIAR TODO</button>
+            </div>
+
+            <div class="code-wrapper shadow-lg">
+                <div class="code-header d-flex justify-content-between">
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-secondary text-white"><i class="fa-brands fa-python me-1"></i> Python 3.9+</span>
+                        <span class="badge bg-primary text-white border border-light">SQLAlchemy</span>
+                    </div>
+                    <span class="text-white small fw-bold">Updated: Jan 2025</span>
+                </div>
+<pre><code class="language-python" id="codigo-python">import pandas as pd
+from sqlalchemy import create_engine
+import os
+import subprocess
+import time
+from datetime import datetime
+
+# ══════════════════════════════════════════════════
+# 📌 CONFIGURACIÓN PRINCIPAL DEL ROBOT
+# ══════════════════════════════════════════════════
+SERVER = 'localhost'                 # Tu servidor SQL (ej: DESKTOP-XYZ\SQLEXPRESS)
+DB = 'SUPERMERCADO_JPV_V5'           # Tu Base de Datos
+VIEW = 'VISTA_ANALITICA_DETALLADA'   # La vista SQL maestra a consultar
+TIEMPO_ESPERA = 30                   # Segundos entre ciclos de actualización
+
+# 📌 RUTA CRÍTICA DE GIT (Ajuste automático para Windows)
+# Ejecuta 'where git' en CMD si esta ruta falla para encontrar la tuya
+UBICACION_GIT = r"C:\Program Files\Git\cmd\git.exe"
+
+# ===================================================
+
+# Configuración de Rutas Dinámicas
+REPO_PATH = os.path.dirname(os.path.abspath(__file__))
+FILE_CSV = os.path.join(REPO_PATH, 'Sales_Data.csv')
+FILE_XLSX = os.path.join(REPO_PATH, 'Sales_Data.xlsx')
+FILE_JSON = os.path.join(REPO_PATH, 'Sales_Data.json')
+
+def ejecutar_git(comando):
+    """Ejecuta comandos de Git usando la ruta absoluta del ejecutable"""
+    comando_completo = f'"{UBICACION_GIT}" {comando}'
+    subprocess.run(comando_completo, shell=True, check=True)
+
+def ciclo_robot():
+    ahora = datetime.now().strftime('%H:%M:%S')
+    print(f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print(f"🔄 INICIANDO CICLO: {ahora}")
+    print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    
+    try:
+        # 1️⃣ EXTRACCIÓN (SQL)
+        print("🔌 Conectando a SQL Server...")
+        # Autenticación de Windows (Trusted Connection)
+        conn_str = f"mssql+pyodbc://{SERVER}/{DB}?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes"
+        engine = create_engine(conn_str)
+        
+        df = pd.read_sql(f"SELECT * FROM {VIEW}", engine)
+        print(f"✅ Datos extraídos: {len(df)} registros encontrados.")
+        
+        # 2️⃣ TRANSFORMACIÓN (Pandas)
+        print("💾 Generando archivos universales...")
+        # CSV: Ligero para Power BI Web
+        df.to_csv(FILE_CSV, index=False, encoding='utf-8')
+        # Excel: Para Gerencia/Reportes
+        df.to_excel(FILE_XLSX, index=False, engine='openpyxl')
+        # JSON: Para Apps y Web Devs
+        df.to_json(FILE_JSON, orient='records', date_format='iso', indent=4)
+        print("   ✓ CSV, XLSX y JSON actualizados en disco.")
+        
+        # 3️⃣ CARGA/SINCRONIZACIÓN (Git)
+        os.chdir(REPO_PATH)
+        ejecutar_git("add .")
+        
+        # Verificar si hay cambios reales antes de hacer commit
+        check_cmd = f'"{UBICACION_GIT}" status --porcelain'
+        status = subprocess.run(check_cmd, shell=True, capture_output=True, text=True)
+        
+        if status.stdout.strip():
+            print("🚀 Cambios detectados en los datos. Subiendo a la nube...")
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ejecutar_git(f'commit -m "Auto-update {timestamp}"')
+            ejecutar_git("push")
+            print("🌐 ¡Sincronización Exitosa! Fuente de Verdad actualizada.")
+        else:
+            print("💤 No hay cambios en la base de datos. Repositorio al día.")
+
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️  ERROR DE GIT: {e}")
+        print("   Tip: Verifica tus credenciales o la ruta UBICACION_GIT.")
+    except Exception as e:
+        print(f"❌ ERROR GENERAL: {e}")
+
+if __name__ == "__main__":
+    print("\n🤖 === ROBOT DE DATOS V2.0 ===")
+    print(f"📂 Directorio: {REPO_PATH}")
+    print(f"⏱️  Frecuencia: Cada {TIEMPO_ESPERA} segundos")
+    
+    # Check de Seguridad
+    if not os.path.exists(UBICACION_GIT):
+        print(f"⛔ ERROR CRÍTICO: No se encuentra Git en: {UBICACION_GIT}")
+        print("   Ejecuta 'where git' en CMD y actualiza la variable en el script.")
+        exit()
+        
+    while True:
+        ciclo_robot()
+        time.sleep(TIEMPO_ESPERA)</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instrucciones Detalladas -->
+    <section id="instrucciones" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="mb-5 text-center text-white">Guía de Instalación</h2>
+            
+            <div class="row g-4">
+                <div class="col-lg-8 mx-auto">
+                    <!-- Paso 1 -->
+                    <div class="card bg-black border border-white mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-info fw-bold"><i class="fa-solid fa-1 me-2"></i>Clonar Repositorio</h5>
+                            <p class="text-white">Descarga el proyecto a tu máquina local.</p>
+                            <code class="d-block p-3 rounded bg-dark border border-secondary text-white fw-bold">git clone https://github.com/JUANCITOPENA/FUENTE_DE_LA_VERDAD.git</code>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div class="card bg-black border border-white mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning fw-bold"><i class="fa-solid fa-2 me-2"></i>Entorno Virtual</h5>
+                            <p class="text-white">Crea un espacio aislado para evitar conflictos de librerías.</p>
+                            <code class="d-block p-3 rounded bg-dark border border-secondary text-white fw-bold mb-2">python -m venv venv</code>
+                            <code class="d-block p-3 rounded bg-dark border border-secondary text-white fw-bold">.\venv\Scripts\activate</code>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div class="card bg-black border border-white mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-success fw-bold"><i class="fa-solid fa-3 me-2"></i>Dependencias</h5>
+                            <p class="text-white">Instala los motores necesarios (Pandas, SQLAlchemy, Drivers).</p>
+                            <code class="d-block p-3 rounded bg-dark border border-secondary text-white fw-bold">pip install pandas sqlalchemy pyodbc openpyxl</code>
+                        </div>
+                    </div>
+
+                    <!-- Paso 4 -->
+                    <div class="card bg-black border border-white">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger fw-bold"><i class="fa-solid fa-4 me-2"></i>Configurar & Ejecutar</h5>
+                            <p class="text-white">Edita <code>robot_datos.py</code> con tu servidor SQL y lanza el robot.</p>
+                            <code class="d-block p-3 rounded bg-dark border border-secondary text-white fw-bold">python robot_datos.py</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Power BI -->
+    <section id="powerbi" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 text-white">Conexión con Power BI <span class="text-warning"><i class="fa-solid fa-bolt"></i></span></h2>
+            
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <h4 class="text-white fw-bold"><i class="fa-solid fa-link me-2 text-primary"></i>Método 1: URL Web</h4>
+                        <p class="text-white">Conecta Power BI directamente a los archivos en GitHub (Raw). No requiere Gateway.</p>
+                        <ol class="text-white">
+                            <li>Ve a tu archivo CSV en GitHub y pulsa <strong>Raw</strong>.</li>
+                            <li>Copia la URL del navegador.</li>
+                            <li>En Power BI: <strong>Obtener Datos > Web</strong>.</li>
+                            <li>Pega la URL y listo.</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="glass-card">
+                        <h4 class="text-white fw-bold"><i class="fa-solid fa-arrows-rotate me-2 text-success"></i>Refresco Automático</h4>
+                        <p class="text-white">Mantén tus dashboards siempre al día en Power BI Service.</p>
+                        <ul class="text-white">
+                            <li>Publica tu reporte en Power BI Service.</li>
+                            <li>Ve a Configuración del Dataset.</li>
+                            <li>Activa <strong>Scheduled Refresh</strong>.</li>
+                            <li>Tus datos se actualizarán sin intervención.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solución de Problemas (FAQ) -->
+    <section class="py-5 bg-black">
+        <div class="container">
+            <h3 class="mb-4 text-center text-white"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Solución de Problemas Comunes</h3>
+            <div class="accordion" id="accordionFAQ">
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            ❌ Error: [WinError 2] The system cannot find the file specified
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body fw-bold">
+                            <strong>Causa:</strong> Python no encuentra <code>git.exe</code>.<br>
+                            <strong>Solución:</strong> Ejecuta <code>where git</code> en tu CMD, copia la ruta completa y pégala en la variable <code>UBICACION_GIT</code> dentro del script.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            ❌ Error: Login failed for user (SQL Server)
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body fw-bold">
+                            <strong>Causa:</strong> Problema de autenticación.<br>
+                            <strong>Solución:</strong> Asegúrate de estar usando una cuenta con permisos. Si usas autenticación de Windows, verifica que el string de conexión incluya <code>trusted_connection=yes</code>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            ❌ El Robot no sube cambios a GitHub
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                        <div class="accordion-body fw-bold">
+                            <strong>Causa:</strong> Falta configuración de usuario en Git.<br>
+                            <strong>Solución:</strong> Ejecuta en terminal:<br>
+                            <code>git config --global user.name "Tu Nombre"</code><br>
+                            <code>git config --global user.email "tu@email.com"</code>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap & Footer -->
+    <footer class="py-5 border-top border-light mt-5 text-center bg-dark">
+        <div class="container">
+            <h5 class="mb-4 text-white fw-bold">🚀 Próximas Mejoras (Roadmap)</h5>
+            <div class="d-flex justify-content-center gap-3 mb-5 flex-wrap">
+                <span class="badge bg-black border border-white p-2 text-white"><i class="fa-regular fa-envelope me-1"></i> Alertas Email</span>
+                <span class="badge bg-black border border-white p-2 text-white"><i class="fa-brands fa-docker me-1"></i> Docker Container</span>
+                <span class="badge bg-black border border-white p-2 text-white"><i class="fa-solid fa-lock me-1"></i> Encriptación</span>
+            </div>
+            
+            <p class="text-white mb-0 small fw-bold">Desarrollado por <strong>Juancito Peña</strong> | Licencia MIT</p>
+            <p class="text-white small fw-bold">Fuente de la Verdad &copy; 2025</p>
+            
+            <div class="mt-3">
+                <a href="https://github.com/JUANCITOPENA" class="text-white mx-2 fs-4"><i class="fa-brands fa-github"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script>
+        function copiarCodigo() {
+            const codigo = document.getElementById('codigo-python').innerText;
+            navigator.clipboard.writeText(codigo).then(() => {
+                const btn = document.querySelector('.btn-outline-info');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check me-2"></i>COPIADO';
+                btn.classList.replace('btn-outline-info', 'btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.replace('btn-success', 'btn-outline-info');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
